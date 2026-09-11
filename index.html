@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Segera Hadir - Sistem Penugasan</title>
+    <title>Sistem Penugasan & Penomoran Surat</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- SweetAlert2 untuk Notifikasi Modern -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+<body class="min-h-screen flex flex-col items-center justify-center">
 
-    <!-- BAGIAN 1: KONTEN UTAMA / COUNTDOWN (AWALNYA DISEMBUNYIKAN) -->
-    <div id="mainContent" class="max-w-md w-full space-y-6 hidden">
+    <!-- BAGIAN 1: KONTEN APLIKASI UTAMA (MUNCUL SETELAH WAKTU HABIS) -->
+    <div id="mainAppContainer" class="w-full h-full hidden flex-col">
+        <iframe src="https://script.google.com/macros/s/AKfycbyXoxGhWe1muwhj4m9HNVeEfHmXu4ud4yMssiHEhIqIXv7Fd1zs1TBzW8N2LNx-OOQL/exec" 
+                class="w-full h-full border-none" 
+                title="Sistem Penugasan"></iframe>
+    </div>
+
+    <!-- BAGIAN 2: HALAMAN HITUNG MUNDUR (MUNCUL SETELAH LOGIN, SEBELUM WAKTU HABIS) -->
+    <div id="countdownSection" class="max-w-md w-full space-y-6 text-center p-6 hidden">
         <div class="space-y-2">
             <h1 class="text-4xl font-extrabold tracking-tight text-white">Segera Hadir</h1>
             <p class="text-sm text-slate-400">Website kami sedang dalam tahap pemeliharaan. Silakan kembali lagi nanti!</p>
         </div>
 
-        <!-- Wadah Hitung Mundur -->
         <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-6 shadow-xl backdrop-blur">
             <p class="text-xs font-semibold uppercase tracking-wider text-blue-400 mb-3">Pemeliharaan akan berakhir dalam:</p>
             <div id="countdown" class="text-2xl font-mono font-bold text-white tracking-widest">
@@ -33,9 +39,9 @@
         </div>
     </div>
 
-    <!-- BAGIAN 2: FORM LOGIN PASSWORD (MUNCUL PERTAMA KALI) -->
-    <div id="loginSection" class="max-w-sm w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-2xl backdrop-blur space-y-4">
-        <div class="space-y-1">
+    <!-- BAGIAN 3: FORM LOGIN PASSWORD (MUNCUL PERTAMA KALI) -->
+    <div id="loginSection" class="max-w-sm w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-2xl backdrop-blur space-y-4 m-auto">
+        <div class="space-y-1 text-center">
             <div class="bg-blue-600/20 w-12 h-12 mx-auto rounded-xl flex items-center justify-center border border-blue-500/30 text-blue-400 mb-2">
                 <span class="text-lg">🔑</span>
             </div>
@@ -50,15 +56,13 @@
         </form>
     </div>
 
-    <!-- Skrip Logika Password & Hitung Mundur -->
+    <!-- Skrip Logika Lengkap -->
     <script>
-        // TENTUKAN PASSWORD ANDA DI SINI
         const PASSWORD_RAHASIA = "osdm321";
 
-        // Cek apakah sebelumnya sudah pernah login di browser ini
         window.onload = function() {
             if (localStorage.getItem("isLoggedIn") === "true") {
-                tampilkanAplikasi();
+                cekWaktuDanTampilkan();
             }
         };
 
@@ -68,7 +72,7 @@
 
             if (inputPwd === PASSWORD_RAHASIA) {
                 localStorage.setItem("isLoggedIn", "true");
-                tampilkanAplikasi();
+                cekWaktuDanTampilkan();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -82,23 +86,25 @@
             }
         }
 
-        function tampilkanAplikasi() {
+        function cekWaktuDanTampilkan() {
             document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("mainContent").classList.remove("hidden");
-            mulaiHitungMundur();
-        }
-
-        function logoutAdmin() {
-            localStorage.removeItem("isLoggedIn");
-            location.reload();
-        }
-
-        function mulaiHitungMundur() {
-            const countDownDate = new Date("2026-09-12T01:11:00+07:00").getTime();
             
-            // URL Web App Google Apps Script Anda yang terbaru
-            const targetAppUrl = "https://script.google.com/macros/s/AKfycbyXoxGhWe1muwhj4m9HNVeEfHmXu4ud4yMssiHEhIqIXv7Fd1zs1TBzW8N2LNx-OOQL/exec";
+            // Tentukan Waktu Berakhir Pemeliharaan
+            const countDownDate = new Date("2026-09-12T01:20:00+07:00").getTime();
+            const now = new Date().getTime();
+            const distance = countDownDate - now;
 
+            if (distance < 0) {
+                // Jika waktu sudah habis, langsung tampilkan aplikasi utama (iframe)
+                tampilkanAplikasiUtama();
+            } else {
+                // Jika waktu belum habis, tampilkan halaman hitung mundur
+                document.getElementById("countdownSection").classList.remove("hidden");
+                mulaiHitungMundur(countDownDate);
+            }
+        }
+
+        function mulaiHitungMundur(countDownDate) {
             const x = setInterval(function() {
                 const now = new Date().getTime();
                 const distance = countDownDate - now;
@@ -112,7 +118,7 @@
                     clearInterval(x);
                     document.getElementById("countdown").innerHTML = "MEMBUKA APLIKASI...";
                     setTimeout(() => {
-                        window.location.href = targetAppUrl;
+                        tampilkanAplikasiUtama();
                     }, 1000);
                 } else {
                     let displayTime = "";
@@ -121,6 +127,18 @@
                     document.getElementById("countdown").innerHTML = displayTime;
                 }
             }, 1000);
+        }
+
+        function tampilkanAplikasiUtama() {
+            document.getElementById("countdownSection").classList.add("hidden");
+            const container = document.getElementById("mainAppContainer");
+            container.classList.remove("hidden");
+            container.classList.add("flex");
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem("isLoggedIn");
+            location.reload();
         }
     </script>
 </body>
