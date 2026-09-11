@@ -27,11 +27,13 @@
         </div>
     </div>
 
-    <!-- Skrip Hitung Mundur & Auto Reload -->
+    <!-- Skrip Hitung Mundur & Auto Redirect -->
     <script>
-        // Tentukan Waktu Berakhir Pemeliharaan (Tahun, Bulan 0-11, Tanggal, Jam, Menit, Detik)
-        // Contoh di bawah diset tanggal 12 September 2026 jam 12:00:00 WIB
+        // Tentukan Waktu Berakhir Pemeliharaan (Tahun, Bulan, Tanggal, Jam, Menit, Detik)
         const countDownDate = new Date("September 12, 2026 00:08:00").getTime();
+
+        // URL Web App Google Apps Script Anda
+        const targetAppUrl = "https://script.google.com/macros/s/AKfycbjykPVAzg9CgGvWPFtNuNYIGBUCUV1zwvU4bSRcGx9BnMAyb1GZVi-NM9M1HboeOKRS/exec";
 
         const x = setInterval(function() {
             const now = new Date().getTime();
@@ -45,11 +47,12 @@
             // Tampilkan hasilnya di elemen dengan id="countdown"
             if (distance < 0) {
                 clearInterval(x);
-                document.getElementById("countdown").innerHTML = "SISTEM TELAH AKTIF!";
-                // Refresh halaman secara otomatis agar langsung membuka aplikasi utama
+                document.getElementById("countdown").innerHTML = "MEMBUKA APLIKASI...";
+                
+                // Langsung arahkan ke aplikasi utama setelah 1 detik
                 setTimeout(() => {
-                    location.reload();
-                }, 1500);
+                    window.location.href = targetAppUrl;
+                }, 1000);
             } else {
                 document.getElementById("countdown").innerHTML = 
                     `${hours} jam, ${minutes} menit, ${seconds} detik`;
