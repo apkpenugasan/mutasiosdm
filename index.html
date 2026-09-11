@@ -56,13 +56,20 @@
         </form>
     </div>
 
-    <!-- Skrip Logika Lengkap -->
+    <!-- Skrip Logika Lengkap + Idle Timeout -->
     <script>
         const PASSWORD_RAHASIA = "osdm321";
+        
+        // PENGATUR WAKTU IDLE (Dalam Milidetik)
+        // Contoh di bawah diset 15 menit (15 * 60 * 1000 milidetik)
+        // Anda bisa mengubahnya, misal 30 menit = 30 * 60 * 1000
+        const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
+        let idleTimer;
 
         window.onload = function() {
             if (localStorage.getItem("isLoggedIn") === "true") {
                 cekWaktuDanTampilkan();
+                mulaiPengingatIdle();
             }
         };
 
@@ -73,6 +80,7 @@
             if (inputPwd === PASSWORD_RAHASIA) {
                 localStorage.setItem("isLoggedIn", "true");
                 cekWaktuDanTampilkan();
+                mulaiPengingatIdle();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -89,16 +97,13 @@
         function cekWaktuDanTampilkan() {
             document.getElementById("loginSection").classList.add("hidden");
             
-            // Tentukan Waktu Berakhir Pemeliharaan
-            const countDownDate = new Date("2026-09-12T01:20:00+07:00").getTime();
+            const countDownDate = new Date("2026-09-12T01:32:00+07:00").getTime();
             const now = new Date().getTime();
             const distance = countDownDate - now;
 
             if (distance < 0) {
-                // Jika waktu sudah habis, langsung tampilkan aplikasi utama (iframe)
                 tampilkanAplikasiUtama();
             } else {
-                // Jika waktu belum habis, tampilkan halaman hitung mundur
                 document.getElementById("countdownSection").classList.remove("hidden");
                 mulaiHitungMundur(countDownDate);
             }
@@ -139,6 +144,44 @@
         function logoutAdmin() {
             localStorage.removeItem("isLoggedIn");
             location.reload();
+        }
+
+        // --- SISTEM PENGAMANAN IDLE (TIDAK AKTIF) ---
+        function mulaiPengingatIdle() {
+            // Daftar event aktivitas pengguna
+            const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+
+            // Fungsi untuk mereset timer setiap kali ada aktivitas
+            function resetIdleTimer() {
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(terdeteksiIdle, IDLE_TIMEOUT_LIMIT);
+            }
+
+            // Daftarkan listener ke seluruh halaman
+            events.forEach(event => {
+                window.addEventListener(event, resetIdleTimer, true);
+            });
+
+            // Jalankan timer pertama kali
+            resetIdleTimer();
+        }
+
+        function terdeteksiIdle() {
+            // Hapus sesi login dan muat ulang halaman ke menu password
+            localStorage.removeItem("isLoggedIn");
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sesi Berakhir',
+                text: 'Anda tidak aktif dalam waktu yang lama. Silakan masuk kembali.',
+                background: '#1e293b',
+                color: '#f8fafc',
+                confirmButtonColor: '#2563eb',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(() => {
+                location.reload();
+            });
         }
     </script>
 </body>
