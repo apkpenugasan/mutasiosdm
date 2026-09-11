@@ -37,7 +37,7 @@
     <div id="loginSection" class="max-w-sm w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-2xl backdrop-blur space-y-4">
         <div class="space-y-1">
             <div class="bg-blue-600/20 w-12 h-12 mx-auto rounded-xl flex items-center justify-center border border-blue-500/30 text-blue-400 mb-2">
-                <i class="fa-solid fa-lock text-lg">🔑</i>
+                <span class="text-lg">🔑</span>
             </div>
             <h2 class="font-bold text-base text-white">Akses Terbatas</h2>
             <p class="text-xs text-slate-400">Masukkan kata sandi untuk melihat halaman.</p>
@@ -53,7 +53,7 @@
     <!-- Skrip Logika Password & Hitung Mundur -->
     <script>
         // TENTUKAN PASSWORD ANDA DI SINI
-        const PASSWORD_RAHASIA = "osdm321"; // Ganti dengan password yang Anda inginkan
+        const PASSWORD_RAHASIA = "osdm321";
 
         // Cek apakah sebelumnya sudah pernah login di browser ini
         window.onload = function() {
@@ -95,6 +95,8 @@
 
         function mulaiHitungMundur() {
             const countDownDate = new Date("2026-09-12T00:58:00+07:00").getTime();
+            
+            // URL Web App Google Apps Script Anda yang terbaru
             const targetAppUrl = "https://script.google.com/macros/s/AKfycbyXoxGhWe1muwhj4m9HNVeEfHmXu4ud4yMssiHEhIqIXv7Fd1zs1TBzW8N2LNx-OOQL/exec";
 
             const x = setInterval(function() {
