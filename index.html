@@ -16,7 +16,7 @@
 
     <!-- BAGIAN 1: KONTEN APLIKASI UTAMA -->
     <div id="mainAppContainer" class="w-full h-full hidden flex-col relative">
-        <iframe src="https://script.google.com/macros/s/AKfycbxPtzF4QvHPkddQMzbcrdglMWoTIU2vms51z1OYfwqKHvLNkVaATlBctvY0PKA8VFYx/exec" 
+        <iframe src="https://script.google.com/macros/s/AKfycbyBvmIG1aZBfceFSxAKyv02n8TBuT9fTFWm5lqG_ajf2eMD7SjXi_pyg_WEUxB6Ih4/exec" 
                 class="w-full h-full border-none" 
                 title="Sistem Penugasan"></iframe>
 
@@ -36,8 +36,8 @@
                     <div class="flex items-center space-x-3">
                         <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
                         <div>
-                            <h3 class="text-xs font-bold text-white">Asisten OSDM</h3>
-                            <p class="text-[10px] text-slate-400">Pusat Informasi & Pencarian Penugasan</p>
+                            <h3 class="text-xs font-bold text-white">Asisten OSDM Cerdas</h3>
+                            <p class="text-[10px] text-slate-400">Diagnosis Kendala & Cek Status Otomatis</p>
                         </div>
                     </div>
                     <button onclick="toggleChatbox()" class="text-slate-400 hover:text-white cursor-pointer text-sm">✕</button>
@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ada yang bisa saya bantu? Anda bisa memilih tombol pintas di bawah ini atau mengetik pertanyaan secara langsung.
+                            Halo! Ketik kendala Anda (contoh: <i>"gagal input alita"</i> atau <i>"status alita milasari"</i>), sistem akan otomatis mendiagnosisnya.
                         </div>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                 <!-- Kolom Input Pesan -->
                 <div class="p-3 bg-slate-800/80 border-t border-slate-700">
                     <form onsubmit="handleChatSubmit(event)" class="flex space-x-2">
-                        <input type="text" id="chatInput" placeholder="Tuliskan kendala atau nama pegawai..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
+                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan / nama pegawai..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
                             Kirim
                         </button>
@@ -97,7 +97,7 @@
             <div class="bg-blue-600/20 w-12 h-12 mx-auto rounded-xl flex items-center justify-center border border-blue-500/30 text-blue-400 mb-2">
                 <span class="text-lg">🔑</span>
             </div>
-            <h2 class="font-bold text-base text-white">Akses Terbatas</h2>
+            <h2 class="text-base font-bold text-white">Akses Terbatas</h2>
             <p class="text-xs text-slate-400">Masukkan kata sandi untuk melihat halaman.</p>
         </div>
         <form onsubmit="handleLogin(event)" class="space-y-3">
@@ -260,23 +260,32 @@
                     return;
                 }
 
-                let botReply = "";
-
-                if (lowerText.includes("cari") || lowerText.includes("nama") || lowerText.includes("nip") || lowerText.includes("pegawai")) {
-                    waitingForPegawaiQuery = true;
-                    botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cari:";
+                if (lowerText.includes("gagal") || lowerText.includes("input") || lowerText.includes("status") || lowerText.includes("alita") || lowerText.includes("cek") || lowerText.includes("cari")) {
+                    if (lowerText.length > 15 || lowerText.includes("alita") || lowerText.includes("nama") || lowerText.includes("nip")) {
+                        searchDataFromSpreadsheet(userText, chatMessages);
+                    } else {
+                        waitingForPegawaiQuery = true;
+                        let botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cek:";
+                        chatMessages.innerHTML += `
+                            <div class="flex items-start space-x-2">
+                                <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                                    ${botReply}
+                                </div>
+                            </div>
+                        `;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
                 } else {
-                    botReply = getBotResponse(lowerText);
-                }
-
-                chatMessages.innerHTML += `
-                    <div class="flex items-start space-x-2">
-                        <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            ${botReply}
+                    let botReply = getBotResponse(lowerText);
+                    chatMessages.innerHTML += `
+                        <div class="flex items-start space-x-2">
+                            <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                                ${botReply}
+                            </div>
                         </div>
-                    </div>
-                `;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                    `;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
             }, 600);
         }
 
@@ -285,13 +294,13 @@
             chatContainer.innerHTML += `
                 <div id="${loadingId}" class="flex items-start space-x-2">
                     <div class="bg-blue-600/60 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow animate-pulse">
-                        Mencari data untuk "${escapeHtml(keyword)}" di sistem...
+                        Menganalisis data dan membaca status penugasan...
                     </div>
                 </div>
             `;
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbxPtzF4QvHPkddQMzbcrdglMWoTIU2vms51z1OYfwqKHvLNkVaATlBctvY0PKA8VFYx/exec?action=searchChat&q=" + encodeURIComponent(keyword);
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbyBvmIG1aZBfceFSxAKyv02n8TBuT9fTFWm5lqG_ajf2eMD7SjXi_pyg_WEUxB6Ih4/exec?action=searchChat&q=" + encodeURIComponent(keyword);
 
             fetch(webAppUrl)
                 .then(response => response.json())
@@ -299,15 +308,16 @@
                     document.getElementById(loadingId).remove();
                     let replyHtml = "";
                     if (data.status === 'success' && data.data.length > 0) {
-                        replyHtml = "Ditemukan data penugasan berikut:<br><br>";
+                        replyHtml = `Hasil Analisis Sistem untuk pencarian <i>"${escapeHtml(keyword)}"</i>:<br><br>`;
                         data.data.forEach(item => {
                             replyHtml += `• <b>${item.nama}</b> (NIP: ${item.nip})<br>` +
                                          `&nbsp;&nbsp;Jabatan: ${item.jabatanTugas} di ${item.satuanTugas}<br>` +
                                          `&nbsp;&nbsp;Masa Tugas: ${item.tglMulai} s/d ${item.tglBerakhir}<br>` +
-                                         `&nbsp;&nbsp;No. SK: ${item.noSK} [Status: ${item.status}]<br><br>`;
+                                         `&nbsp;&nbsp;No. SK: ${item.noSK} | Status: <b>${item.status}</b><br>` +
+                                         `&nbsp;&nbsp;<span style="color: #fde047;">${item.diagnosa}</span><br><br>`;
                         });
                     } else {
-                        replyHtml = `Mohon maaf, tidak ditemukan data penugasan atas nama atau NIP "${escapeHtml(keyword)}" di dalam sistem.`;
+                        replyHtml = `Mohon maaf, tidak ditemukan data pegawai atau riwayat penugasan untuk kata kunci "${escapeHtml(keyword)}". Pastikan penulisan nama sudah benar.`;
                     }
 
                     chatContainer.innerHTML += `
@@ -333,23 +343,20 @@
         }
 
         function getBotResponse(query) {
-            if (query.includes("halo") || query.includes("hai") || query.includes("selamat") || query.includes("pagi") || query.includes("siang")) {
-                return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pencarian data pegawai?";
+            if (query.includes("halo") || query.includes("hai") || query.includes("selamat")) {
+                return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pengecekan status pegawai?";
             } 
-            else if (query.includes("tidak bisa input") || query.includes("gagal input") || query.includes("overlap") || query.includes("bersinggungan") || query.includes("kendala input")) {
-                return "Pastikan pegawai yang bersangkutan belum memiliki jadwal penugasan lain yang bentrok pada rentang tanggal dan tahun yang sama agar jadwal tidak tumpang tindih.";
-            } 
-            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("download") || query.includes("batas")) {
-                return "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil. Jika dokumen lebih dari 60, silakan unduh secara bertahap.";
+            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("batas")) {
+                return "Unduh rekap dokumen ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem stabil.";
             } 
             else if (query.includes("status") || query.includes("tte")) {
                 return "Status <b>Proses/Draf</b> berarti data sedang dikerjakan, <b>Sudah TTE</b> artinya telah ditandatangani secara elektronik, dan <b>Selesai</b> berarti masa penugasan telah berakhir atau diperbarui.";
             }
             else if (query.includes("password") || query.includes("sandi") || query.includes("login")) {
-                return "Demi keamanan sistem instansi, informasi kata sandi atau akses masuk tidak dapat diberikan melalui asisten virtual ini. Silakan hubungi administrator.";
+                return "Demi keamanan instansi, kata sandi tidak dapat dibagikan di sini. Silakan hubungi administrator.";
             } 
             else {
-                return "Ingin mencari data pegawai atau penugasan? Silakan klik tombol <b>'🔍 Cari Pegawai'</b> di atas atau ketik langsung Nama / NIP pegawai yang ingin Anda cek.";
+                return "Ingin mengecek kendala gagal input atau status surat pegawai? Cukup ketik langsung pertanyaannya (contoh: <i>'status alita milasari'</i> atau <i>'kenapa gagal input alita'</i>).";
             }
         }
 
