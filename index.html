@@ -250,41 +250,41 @@
             }, 600);
         }
 
-        // --- BASIS PENGETAHUAN PANDUAN OPERASIONAL USER (AMAN DARI TEKNIS KODE) ---
+        // --- BASIS PENGETAHUAN PANDUAN USER (MURNI OPERASIONAL & AMAN) ---
         function getBotResponse(query) {
             if (query.includes("halo") || query.includes("hai") || query.includes("selamat") || query.includes("pagi") || query.includes("siang")) {
                 return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pencetakan dokumen surat?";
             } 
-            else if (query.includes("tidak bisa input") || query.includes("gagal input") || query.includes("overlap") || query.includes("bersinggungan") || query.includes("riwayat")) {
-                return "Jika Anda mengalami kendala saat menginput data, pastikan pegawai yang bersangkutan belum memiliki penugasan aktif lain pada rentang tanggal dan tahun yang sama. Sistem akan mencegah bentrok jadwal. Jika Anda memasukkan rentang tanggal baru pada tahun yang sama, riwayat sebelumnya akan otomatis berstatus selesai.";
+            else if (query.includes("tidak bisa input") || query.includes("gagal input") || query.includes("overlap") || query.includes("bersinggungan") || query.includes("riwayat") || query.includes("kenapa saya input")) {
+                return "Pastikan pegawai yang bersangkutan belum memiliki jadwal penugasan lain yang bentrok pada rentang tanggal dan tahun yang sama. Sistem secara otomatis menjaga agar jadwal penugasan tidak tumpang tindih. Jika Anda memasukkan jadwal baru pada tahun yang sama, riwayat penugasan sebelumnya akan otomatis diperbarui.";
             } 
             else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("download") || query.includes("terdownload")) {
-                return "Untuk unduh rekap dokumen dalam bentuk ZIP, sistem membatasi maksimal 60 dokumen dalam sekali proses unduh agar browser dan server tidak mengalami kendala waktu muat. Jika data Anda lebih dari 60, silakan unduh secara bertahap menggunakan filter rentang nomor surat.";
+                return "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil dan tidak mengalami kendala muat. Jika dokumen lebih dari 60, silakan unduh secara bertahap.";
             } 
             else if (query.includes("nomor sk") || query.includes("no sk") || query.includes("format sk")) {
-                return "Nomor Surat Keputusan (SK/ST) akan terisi dan ter-generate secara otomatis oleh sistem berdasarkan urutan penomoran yang berlaku di instansi.";
+                return "Nomor Surat Keputusan atau Surat Tugas akan terisi secara otomatis oleh sistem sesuai dengan urutan pencatatan yang berlaku.";
             }
             else if (query.includes("dasar hukum") || query.includes("pppk") || query.includes("pns")) {
-                return "Dasar hukum surat akan menyesuaikan secara otomatis dengan kategori pegawai yang Anda pilih (PNS/CPNS atau PPPK) pada saat pengisian form.";
+                return "Dasar hukum pada surat akan menyesuaikan secara otomatis dengan kategori kepegawaian yang dipilih (PNS/CPNS atau PPPK) saat Anda mengisi formulir.";
             }
             else if (query.includes("import") || query.includes("excel") || query.includes("batch")) {
-                return "Pastikan kolom pada file Excel Anda sudah sesuai dengan format templat baku yang disediakan pada menu 'Import Excel (Batch)' sebelum mengunggahnya.";
+                return "Pastikan struktur kolom pada file Excel Anda sudah sesuai dengan format templat baku yang disediakan pada menu 'Import Excel (Batch)'.";
             }
             else if (query.includes("edit") || query.includes("update") || query.includes("ubah")) {
-                return "Jika ada kesalahan data yang sudah terlanjur tersimpan, Anda dapat memperbaruinya dengan memilih menu 'Edit / Update Data' di bagian atas aplikasi.";
+                return "Jika ada perbaikan data, Anda dapat memanfaatkan menu 'Edit / Update Data' yang tersedia di bagian atas aplikasi.";
             }
             else if (query.includes("cetak") || query.includes("print") || query.includes("pdf")) {
-                return "Dokumen surat tugas resmi dalam format PDF dapat langsung dicetak atau diunduh melalui menu 'Cetak Surat (PDF)' setelah data berhasil disimpan.";
+                return "Dokumen surat tugas dalam format PDF dapat diunduh melalui menu 'Cetak Surat (PDF)' setelah data berhasil disimpan ke dalam sistem.";
             }
-            // Pengamanan Pertanyaan Sensitif / Rahasia (Password/Sandi)
-            else if (query.includes("password") || query.includes("sandi") || query.includes("login")) {
-                return "Maaf, informasi kata sandi akses halaman tidak dapat dibagikan melalui asisten virtual ini demi keamanan data instansi. Silakan hubungi administrator atau koordinator sistem yang berwenang.";
+            // Pengamanan Ketat untuk Pertanyaan Kata Sandi / Akses Rahasia
+            else if (query.includes("password") || query.includes("sandi") || query.includes("login") || query.includes("masuk")) {
+                return "Demi keamanan sistem instansi, informasi kata sandi atau akses masuk tidak dapat diberikan melalui asisten virtual ini. Silakan hubungi administrator atau rekan tim yang memegang kewenangan akses.";
             } 
             else if (query.includes("terima kasih") || query.includes("makasih") || query.includes("thanks")) {
-                return "Sama-sama! Senang bisa membantu kelancaran tugas Anda hari ini.";
+                return "Sama-sama! Senang bisa membantu kelancaran pekerjaan Anda.";
             }
             else {
-                return `Mohon maaf, saya belum sepenuhnya memahami pertanyaan "${query}". Pastikan Anda mengikuti langkah-langkah pengisian form atau panduan menu yang tersedia pada aplikasi.`;
+                return "Mohon maaf, saya belum memahami detail pertanyaan tersebut. Pastikan Anda mengikuti langkah-langkah pengisian form atau panduan pada menu aplikasi yang tersedia.";
             }
         }
 
