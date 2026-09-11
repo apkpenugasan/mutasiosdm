@@ -16,7 +16,7 @@
 
     <!-- BAGIAN 1: KONTEN APLIKASI UTAMA -->
     <div id="mainAppContainer" class="w-full h-full hidden flex-col relative">
-        <iframe src="https://script.google.com/macros/s/AKfycbyBvmIG1aZBfceFSxAKyv02n8TBuT9fTFWm5lqG_ajf2eMD7SjXi_pyg_WEUxB6Ih4/exec" 
+        <iframe src="https://script.google.com/macros/s/AKfycbyhf88xcnKOxeyTmrbtj2DkpY8lah4yvXtSMceawaQrEj_nGx6g3waABe4d0q4a94U/exec" 
                 class="w-full h-full border-none" 
                 title="Sistem Penugasan"></iframe>
 
@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ketik kendala atau nama pegawai yang ingin Anda cek (contoh: <i>"status alita milasari"</i> atau <i>"gagal input budi"</i>).
+                            Halo! Ketik kendala atau nama pegawai yang ingin Anda cek (contoh: <i>"ahmad jaenudin"</i> atau <i>"status alita milasari"</i>).
                         </div>
                     </div>
                 </div>
@@ -228,7 +228,6 @@
             chatWindow.classList.toggle("hidden");
         }
 
-        // Penanganan Tombol Pintasan Cepat (Quick Reply)
         function sendQuickAction(type) {
             const chatMessages = document.getElementById("chatMessages");
             let userLabel = "";
@@ -292,7 +291,7 @@
                     return;
                 }
 
-                if (lowerText.includes("gagal") || lowerText.includes("input") || lowerText.includes("status") || lowerText.includes("cek") || lowerText.includes("cari") || lowerText.length > 5 && (lowerText.includes("alita") || lowerText.includes("nama") || lowerText.includes("nip") || /^[a-zA-Z\s]{4,}$/.test(lowerText))) {
+                if (lowerText.includes("gagal") || lowerText.includes("input") || lowerText.includes("status") || lowerText.includes("cek") || lowerText.includes("cari") || lowerText.length > 5 && (lowerText.includes("alita") || lowerText.includes("ahmad") || lowerText.includes("nama") || lowerText.includes("nip") || /^[a-zA-Z\s]{4,}$/.test(lowerText))) {
                     searchDataFromSpreadsheet(userText, chatMessages);
                 } else {
                     let botReply = getBotResponse(lowerText);
@@ -319,7 +318,7 @@
             `;
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbyBvmIG1aZBfceFSxAKyv02n8TBuT9fTFWm5lqG_ajf2eMD7SjXi_pyg_WEUxB6Ih4/exec?action=searchChat&q=" + encodeURIComponent(keyword);
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbyhf88xcnKOxeyTmrbtj2DkpY8lah4yvXtSMceawaQrEj_nGx6g3waABe4d0q4a94U/exec?action=searchChat&q=" + encodeURIComponent(keyword);
 
             fetch(webAppUrl)
                 .then(response => response.json())
@@ -375,7 +374,7 @@
                 return "Demi keamanan instansi, kata sandi tidak dapat dibagikan di sini. Silakan hubungi administrator.";
             } 
             else {
-                return "Ingin mengecek kendala gagal input atau status surat pegawai? Cukup ketik langsung pertanyaannya (contoh: <i>'status alita milasari'</i> atau <i>'kenapa gagal input alita'</i>).";
+                return "Ingin mengecek kendala gagal input atau status surat pegawai? Cukup ketik langsung pertanyaannya (contoh: <i>'status alita milasari'</i> atau <i>'ahmad jaenudin'</i>).";
             }
         }
 
