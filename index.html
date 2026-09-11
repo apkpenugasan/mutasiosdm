@@ -6,13 +6,16 @@
     <title>Segera Hadir - Sistem Penugasan</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SweetAlert2 untuk Notifikasi Modern -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
 
-    <div class="max-w-md w-full space-y-6">
+    <!-- BAGIAN 1: KONTEN UTAMA / COUNTDOWN (AWALNYA DISEMBUNYIKAN) -->
+    <div id="mainContent" class="max-w-md w-full space-y-6 hidden">
         <div class="space-y-2">
             <h1 class="text-4xl font-extrabold tracking-tight text-white">Segera Hadir</h1>
             <p class="text-sm text-slate-400">Website kami sedang dalam tahap pemeliharaan. Silakan kembali lagi nanti!</p>
@@ -25,44 +28,98 @@
                 Memuat waktu...
             </div>
         </div>
+        <div>
+            <button onclick="logoutAdmin()" class="text-xs text-slate-500 hover:text-slate-300 underline cursor-pointer">Kunci Kembali Halaman</button>
+        </div>
     </div>
 
- <!-- Skrip Hitung Mundur & Auto Redirect -->
+    <!-- BAGIAN 2: FORM LOGIN PASSWORD (MUNCUL PERTAMA KALI) -->
+    <div id="loginSection" class="max-w-sm w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-2xl backdrop-blur space-y-4">
+        <div class="space-y-1">
+            <div class="bg-blue-600/20 w-12 h-12 mx-auto rounded-xl flex items-center justify-center border border-blue-500/30 text-blue-400 mb-2">
+                <i class="fa-solid fa-lock text-lg">🔑</i>
+            </div>
+            <h2 class="font-bold text-base text-white">Akses Terbatas</h2>
+            <p class="text-xs text-slate-400">Masukkan kata sandi untuk melihat halaman.</p>
+        </div>
+        <form onsubmit="handleLogin(event)" class="space-y-3">
+            <input type="password" id="adminPassword" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center tracking-widest" placeholder="Kata Sandi..." required autocomplete="current-password">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-xl shadow transition cursor-pointer text-xs uppercase tracking-wider">
+                Masuk
+            </button>
+        </form>
+    </div>
+
+    <!-- Skrip Logika Password & Hitung Mundur -->
     <script>
-        // Tentukan Waktu Berakhir: Format (Tahun-Bulan-Tanggal Jam:Menit:Detik) dengan Zona Waktu WIB (+07:00)
-        const countDownDate = new Date("2026-09-14T08:00:00+07:00").getTime();
+        // TENTUKAN PASSWORD ANDA DI SINI
+        const PASSWORD_RAHASIA = "osdm321"; // Ganti dengan password yang Anda inginkan
 
-        // URL Web App Google Apps Script Anda
-        const targetAppUrl = "https://script.google.com/macros/s/AKfycbjykPVAzg9CgGvWPFtNuNYIGBUCUV1zwvU4bSRcGx9BnMAyb1GZVi-NM9M1HboeOKRS/exec";
-
-        const x = setInterval(function() {
-            const now = new Date().getTime();
-            const distance = countDownDate - now;
-
-            // Perhitungan akurat untuk Hari, Jam, Menit, dan Detik
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            // Tampilkan hasilnya di elemen dengan id="countdown"
-            if (distance < 0) {
-                clearInterval(x);
-                document.getElementById("countdown").innerHTML = "MEMBUKA APLIKASI...";
-                
-                // Langsung arahkan ke aplikasi utama setelah 1 detik
-                setTimeout(() => {
-                    window.location.href = targetAppUrl;
-                }, 1000);
-            } else {
-                // Tampilkan hari jika durasinya masih berhari-hari
-                let displayTime = "";
-                if (days > 0) {
-                    displayTime += `${days} hari, `;
-                }
-                displayTime += `${hours} jam, ${minutes} menit, ${seconds} detik`;
-                
-                document.getElementById("countdown").innerHTML = displayTime;
+        // Cek apakah sebelumnya sudah pernah login di browser ini
+        window.onload = function() {
+            if (localStorage.getItem("isLoggedIn") === "true") {
+                tampilkanAplikasi();
             }
-        }, 1000);
+        };
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const inputPwd = document.getElementById("adminPassword").value;
+
+            if (inputPwd === PASSWORD_RAHASIA) {
+                localStorage.setItem("isLoggedIn", "true");
+                tampilkanAplikasi();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Kata sandi salah, silakan coba lagi.',
+                    background: '#1e293b',
+                    color: '#f8fafc',
+                    confirmButtonColor: '#2563eb'
+                });
+                document.getElementById("adminPassword").value = "";
+            }
+        }
+
+        function tampilkanAplikasi() {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("mainContent").classList.remove("hidden");
+            mulaiHitungMundur();
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem("isLoggedIn");
+            location.reload();
+        }
+
+        function mulaiHitungMundur() {
+            const countDownDate = new Date("2026-09-12T00:58:00+07:00").getTime();
+            const targetAppUrl = "https://script.google.com/macros/s/AKfycbjykPVAzg9CgGvWPFtNuNYIGBUCUV1zwvU4bSRcGx9BnMAyb1GZVi-NM9M1HboeOKRS/exec";
+
+            const x = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = countDownDate - now;
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("countdown").innerHTML = "MEMBUKA APLIKASI...";
+                    setTimeout(() => {
+                        window.location.href = targetAppUrl;
+                    }, 1000);
+                } else {
+                    let displayTime = "";
+                    if (days > 0) displayTime += `${days} hari, `;
+                    displayTime += `${hours} jam, ${minutes} menit, ${seconds} detik`;
+                    document.getElementById("countdown").innerHTML = displayTime;
+                }
+            }, 1000);
+        }
     </script>
+</body>
+</html>
