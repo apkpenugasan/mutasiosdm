@@ -36,8 +36,8 @@
                     <div class="flex items-center space-x-3">
                         <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
                         <div>
-                            <h3 class="text-xs font-bold text-white">Asisten OSDM (Script Expert)</h3>
-                            <p class="text-[10px] text-slate-400">Siap menjawab logika & kendala sistem</p>
+                            <h3 class="text-xs font-bold text-white">Asisten OSDM</h3>
+                            <p class="text-[10px] text-slate-400">Panduan & Solusi Kendala Aplikasi</p>
                         </div>
                     </div>
                     <button onclick="toggleChatbox()" class="text-slate-400 hover:text-white cursor-pointer text-sm">✕</button>
@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Saya Asisten Virtual Sistem Penugasan. Tanyakan apa saja seputar kendala input, aturan validasi *overlap*, batasan ZIP 60 dokumen, atau logika script aplikasi ini.
+                            Halo! Ada kendala saat menginput penugasan, mencetak rekap PDF, atau mendownload dokumen? Silakan tanyakan di sini.
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                 <!-- Kolom Input Pesan -->
                 <div class="p-3 bg-slate-800/80 border-t border-slate-700">
                     <form onsubmit="handleChatSubmit(event)" class="flex space-x-2">
-                        <input type="text" id="chatInput" placeholder="Tanyakan sesuatu..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
+                        <input type="text" id="chatInput" placeholder="Tuliskan kendala Anda..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
                             Kirim
                         </button>
@@ -103,7 +103,7 @@
     <!-- Skrip Logika Lengkap -->
     <script>
         const PASSWORD_RAHASIA = "osdm321";
-        const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; // 15 Menit Idle Logout
+        const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
         let idleTimer;
 
         window.onload = function() {
@@ -250,40 +250,41 @@
             }, 600);
         }
 
-        // --- BASIS PENGETAHUAN / LOGIKA CERDAS BERDASARKAN MASTER GS ---
+        // --- BASIS PENGETAHUAN PANDUAN OPERASIONAL USER (AMAN DARI TEKNIS KODE) ---
         function getBotResponse(query) {
             if (query.includes("halo") || query.includes("hai") || query.includes("selamat") || query.includes("pagi") || query.includes("siang")) {
-                return "Halo! Ada yang bisa saya bantu terkait logika atau pengoperasian Sistem Penugasan & Penomoran Surat ini?";
+                return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pencetakan dokumen surat?";
             } 
             else if (query.includes("tidak bisa input") || query.includes("gagal input") || query.includes("overlap") || query.includes("bersinggungan") || query.includes("riwayat")) {
-                return "Berdasarkan logika script, sistem menolak input jika pegawai dengan NIP yang sama pada periode tahun tersebut memiliki rentang tanggal penugasan aktif yang bersinggungan (*overlap*) dan statusnya belum 'BATAL' atau 'SELESAI'. Jika Anda memasukkan tanggal baru yang berbeda pada periode yang sama, sistem otomatis akan mengubah status penugasan lama menjadi 'Selesai'.";
+                return "Jika Anda mengalami kendala saat menginput data, pastikan pegawai yang bersangkutan belum memiliki penugasan aktif lain pada rentang tanggal dan tahun yang sama. Sistem akan mencegah bentrok jadwal. Jika Anda memasukkan rentang tanggal baru pada tahun yang sama, riwayat sebelumnya akan otomatis berstatus selesai.";
             } 
-            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("download") || query.includes("terdownload") || query.includes("timeout")) {
-                return "Sesuai batasan fungsi <code>generateBulkZipPdf</code> dan <code>generateBulkZipSelected</code> di script, unduh rekap berkas dibatasi maksimal 60 dokumen dalam sekali proses. Hal ini dirancang untuk menghindari batasan waktu eksekusi (*timeout*) dari server Google Apps Script.";
+            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("download") || query.includes("terdownload")) {
+                return "Untuk unduh rekap dokumen dalam bentuk ZIP, sistem membatasi maksimal 60 dokumen dalam sekali proses unduh agar browser dan server tidak mengalami kendala waktu muat. Jika data Anda lebih dari 60, silakan unduh secara bertahap menggunakan filter rentang nomor surat.";
             } 
-            else if (query.includes("nomor sk") || query.includes("no sk") || query.includes("format sk") || query.includes("nomor")) {
-                return "Penomoran SK di-generate secara otomatis oleh fungsi <code>getNextNomorSK()</code> berdasarkan format di sheet Config (contoh: <code>{NOMOR}/1/KP.03.00/{BULAN}/{TAHUN}</code>) dan nomor terakhir yang tersimpan di cell B2.";
+            else if (query.includes("nomor sk") || query.includes("no sk") || query.includes("format sk")) {
+                return "Nomor Surat Keputusan (SK/ST) akan terisi dan ter-generate secara otomatis oleh sistem berdasarkan urutan penomoran yang berlaku di instansi.";
             }
-            else if (query.includes("dasar hukum") || query.includes("pppk") || query.includes("pns") || query.includes("cpns")) {
-                return "Script membaca kategori secara otomatis: untuk PNS/CPNS dasar hukum poin 2 merujuk pada PP No. 11 Tahun 2017 jo. PP No. 17 Tahun 2020 dan menggunakan label NIP. Sedangkan untuk PPPK merujuk pada PP No. 49 Tahun 2018 dan menggunakan label NI PPPK.";
+            else if (query.includes("dasar hukum") || query.includes("pppk") || query.includes("pns")) {
+                return "Dasar hukum surat akan menyesuaikan secara otomatis dengan kategori pegawai yang Anda pilih (PNS/CPNS atau PPPK) pada saat pengisian form.";
             }
             else if (query.includes("import") || query.includes("excel") || query.includes("batch")) {
-                return "Fitur import batch di script memproses array baris data, mendeteksi nomor SK otomatis (jika diaktifkan), serta mencatat timestamp pembuatan dan pembaruan secara otomatis.";
+                return "Pastikan kolom pada file Excel Anda sudah sesuai dengan format templat baku yang disediakan pada menu 'Import Excel (Batch)' sebelum mengunggahnya.";
             }
             else if (query.includes("edit") || query.includes("update") || query.includes("ubah")) {
-                return "Fungsi <code>updatePenugasanData</code> di backend akan memperbarui baris data yang sesuai berdasarkan nomor indeks baris (*rowIndex*), serta memperbarui timestamp perubahan terakhir (*updatedAt*).";
+                return "Jika ada kesalahan data yang sudah terlanjur tersimpan, Anda dapat memperbaruinya dengan memilih menu 'Edit / Update Data' di bagian atas aplikasi.";
             }
             else if (query.includes("cetak") || query.includes("print") || query.includes("pdf")) {
-                return "Pencetakan surat didukung oleh fungsi <code>buildSuratTugasHtml</code> yang dikompatibelkan dengan standar SIKD Kementerian Sosial serta otomatis menyematkan logo dari Google Drive folder.";
+                return "Dokumen surat tugas resmi dalam format PDF dapat langsung dicetak atau diunduh melalui menu 'Cetak Surat (PDF)' setelah data berhasil disimpan.";
             }
-            else if (query.includes("password") || query.includes("sandi") || query.includes("login") || query.includes("idle")) {
-                return "Password akses utama halaman ini adalah <code>osdm321</code>. Sistem juga dilengkapi pengaman sesi lokal (*localStorage*) dan pengaman otomatis (*idle timer*) jika Anda tidak aktif dalam waktu tertentu.";
+            // Pengamanan Pertanyaan Sensitif / Rahasia (Password/Sandi)
+            else if (query.includes("password") || query.includes("sandi") || query.includes("login")) {
+                return "Maaf, informasi kata sandi akses halaman tidak dapat dibagikan melalui asisten virtual ini demi keamanan data instansi. Silakan hubungi administrator atau koordinator sistem yang berwenang.";
             } 
             else if (query.includes("terima kasih") || query.includes("makasih") || query.includes("thanks")) {
-                return "Sama-sama! Senang bisa menjelaskan logika di balik script aplikasi Anda. Ada bagian kode lain yang ingin dibahas?";
+                return "Sama-sama! Senang bisa membantu kelancaran tugas Anda hari ini.";
             }
             else {
-                return `Pertanyaan yang menarik! Untuk kendala "${query}", pastikan parameter data pada Google Sheets (seperti sheet 'config' dan sheet kategori PNS/PPPK) sudah terisi dengan benar sesuai struktur program.`;
+                return `Mohon maaf, saya belum sepenuhnya memahami pertanyaan "${query}". Pastikan Anda mengikuti langkah-langkah pengisian form atau panduan menu yang tersedia pada aplikasi.`;
             }
         }
 
