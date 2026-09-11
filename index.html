@@ -47,17 +47,17 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ketik kendala Anda (contoh: <i>"gagal input alita"</i> atau <i>"status alita milasari"</i>), sistem akan otomatis mendiagnosisnya.
+                            Halo! Ketik kendala atau nama pegawai yang ingin Anda cek (contoh: <i>"status alita milasari"</i> atau <i>"gagal input budi"</i>).
                         </div>
                     </div>
                 </div>
 
                 <!-- Tombol Pintasan Cepat (Quick Reply Chips) -->
                 <div class="px-3 py-2 bg-slate-800/40 border-t border-slate-800 flex flex-wrap gap-1.5">
-                    <button onclick="sendQuickQuery('Cari Data Pegawai')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">🔍 Cari Pegawai</button>
-                    <button onclick="sendQuickQuery('Kendala Input Data')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">⚠️ Gagal Input</button>
-                    <button onclick="sendQuickQuery('Batas Download ZIP')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📦 Limit ZIP</button>
-                    <button onclick="sendQuickQuery('Status Dokumen')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📌 Status Surat</button>
+                    <button onclick="sendQuickAction('cari')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">🔍 Cari Pegawai</button>
+                    <button onclick="sendQuickAction('gagal')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">⚠️ Gagal Input</button>
+                    <button onclick="sendQuickAction('zip')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📦 Limit ZIP</button>
+                    <button onclick="sendQuickAction('status')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📌 Status Surat</button>
                 </div>
 
                 <!-- Kolom Input Pesan -->
@@ -228,9 +228,41 @@
             chatWindow.classList.toggle("hidden");
         }
 
-        function sendQuickQuery(text) {
-            document.getElementById("chatInput").value = text;
-            handleChatSubmit(new Event('submit'));
+        // Penanganan Tombol Pintasan Cepat (Quick Reply)
+        function sendQuickAction(type) {
+            const chatMessages = document.getElementById("chatMessages");
+            let userLabel = "";
+            let botReply = "";
+
+            if (type === 'cari') {
+                userLabel = "🔍 Cari Data Pegawai";
+                botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cari:";
+                waitingForPegawaiQuery = true;
+            } else if (type === 'gagal') {
+                userLabel = "⚠️ Kendala Input Data";
+                botReply = "Gagal input biasanya terjadi karena jadwal penugasan pegawai bersinggungan (*overlap*) dengan penugasan aktif yang belum selesai. Siapa nama pegawai yang ingin Anda cek?";
+                waitingForPegawaiQuery = true;
+            } else if (type === 'zip') {
+                userLabel = "📦 Batas Download ZIP";
+                botReply = "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil. Jika lebih dari 60, silakan unduh secara bertahap.";
+            } else if (type === 'status') {
+                userLabel = "📌 Status Dokumen";
+                botReply = "Status <b>Proses/Draf</b> = sedang dikerjakan.<br>Status <b>Sudah TTE</b> = sudah ditandatangani elektronik.<br>Status <b>Selesai</b> = masa tugas berakhir.<br><br>Ingin cek status pegawai tertentu? Ketik nama pegawai tersebut.";
+            }
+
+            chatMessages.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-slate-700 text-white rounded-xl rounded-tr-none p-3 max-w-[80%] shadow">
+                        ${userLabel}
+                    </div>
+                </div>
+                <div class="flex items-start space-x-2">
+                    <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                        ${botReply}
+                    </div>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function handleChatSubmit(e) {
@@ -260,21 +292,8 @@
                     return;
                 }
 
-                if (lowerText.includes("gagal") || lowerText.includes("input") || lowerText.includes("status") || lowerText.includes("alita") || lowerText.includes("cek") || lowerText.includes("cari")) {
-                    if (lowerText.length > 15 || lowerText.includes("alita") || lowerText.includes("nama") || lowerText.includes("nip")) {
-                        searchDataFromSpreadsheet(userText, chatMessages);
-                    } else {
-                        waitingForPegawaiQuery = true;
-                        let botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cek:";
-                        chatMessages.innerHTML += `
-                            <div class="flex items-start space-x-2">
-                                <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                                    ${botReply}
-                                </div>
-                            </div>
-                        `;
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    }
+                if (lowerText.includes("gagal") || lowerText.includes("input") || lowerText.includes("status") || lowerText.includes("cek") || lowerText.includes("cari") || lowerText.length > 5 && (lowerText.includes("alita") || lowerText.includes("nama") || lowerText.includes("nip") || /^[a-zA-Z\s]{4,}$/.test(lowerText))) {
+                    searchDataFromSpreadsheet(userText, chatMessages);
                 } else {
                     let botReply = getBotResponse(lowerText);
                     chatMessages.innerHTML += `
