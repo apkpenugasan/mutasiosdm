@@ -27,19 +27,20 @@
         </div>
     </div>
 
-    <!-- Skrip Hitung Mundur & Auto Redirect -->
+ <!-- Skrip Hitung Mundur & Auto Redirect -->
     <script>
-        // Tentukan Waktu Berakhir Pemeliharaan (Tahun, Bulan, Tanggal, Jam, Menit, Detik)
-        const countDownDate = new Date("September 14, 2026 08:00:00").getTime();
+        // Tentukan Waktu Berakhir: Format (Tahun-Bulan-Tanggal Jam:Menit:Detik) dengan Zona Waktu WIB (+07:00)
+        const countDownDate = new Date("2026-09-14T08:00:00+07:00").getTime();
 
         // URL Web App Google Apps Script Anda
-        const targetAppUrl = "https://script.google.com/macros/s/AKfycbyXoxGhWe1muwhj4m9HNVeEfHmXu4ud4yMssiHEhIqIXv7Fd1zs1TBzW8N2LNx-OOQL/exec";
+        const targetAppUrl = "https://script.google.com/macros/s/AKfycbjykPVAzg9CgGvWPFtNuNYIGBUCUV1zwvU4bSRcGx9BnMAyb1GZVi-NM9M1HboeOKRS/exec";
 
         const x = setInterval(function() {
             const now = new Date().getTime();
             const distance = countDownDate - now;
 
-            // Perhitungan waktu untuk jam, menit, dan detik
+            // Perhitungan akurat untuk Hari, Jam, Menit, dan Detik
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -54,10 +55,14 @@
                     window.location.href = targetAppUrl;
                 }, 1000);
             } else {
-                document.getElementById("countdown").innerHTML = 
-                    `${hours} jam, ${minutes} menit, ${seconds} detik`;
+                // Tampilkan hari jika durasinya masih berhari-hari
+                let displayTime = "";
+                if (days > 0) {
+                    displayTime += `${days} hari, `;
+                }
+                displayTime += `${hours} jam, ${minutes} menit, ${seconds} detik`;
+                
+                document.getElementById("countdown").innerHTML = displayTime;
             }
         }, 1000);
     </script>
-</body>
-</html>
