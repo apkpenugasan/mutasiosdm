@@ -14,9 +14,9 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center">
 
-    <!-- BAGIAN 1: KONTEN APLIKASI UTAMA (MUNCUL SETELAH WAKTU HABIS) -->
+    <!-- BAGIAN 1: KONTEN APLIKASI UTAMA -->
     <div id="mainAppContainer" class="w-full h-full hidden flex-col relative">
-        <iframe src="https://script.google.com/macros/s/AKfycbyXoxGhWe1muwhj4m9HNVeEfHmXu4ud4yMssiHEhIqIXv7Fd1zs1TBzW8N2LNx-OOQL/exec" 
+        <iframe src="https://script.google.com/macros/s/AKfycbxPtzF4QvHPkddQMzbcrdglMWoTIU2vms51z1OYfwqKHvLNkVaATlBctvY0PKA8VFYx/exec" 
                 class="w-full h-full border-none" 
                 title="Sistem Penugasan"></iframe>
 
@@ -30,14 +30,14 @@
             </button>
 
             <!-- Jendela Kotak Percakapan Chatbot -->
-            <div id="chatWindow" class="hidden flex flex-col w-80 sm:w-96 h-[480px] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-lg absolute bottom-16 right-0 transition-all duration-300">
+            <div id="chatWindow" class="hidden flex flex-col w-80 sm:w-96 h-[520px] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-lg absolute bottom-16 right-0 transition-all duration-300">
                 <!-- Header Chatbot -->
                 <div class="bg-slate-800 px-4 py-3 border-b border-slate-700 flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
                         <div>
                             <h3 class="text-xs font-bold text-white">Asisten OSDM</h3>
-                            <p class="text-[10px] text-slate-400">Panduan & Solusi Kendala Aplikasi</p>
+                            <p class="text-[10px] text-slate-400">Pusat Informasi & Pencarian Penugasan</p>
                         </div>
                     </div>
                     <button onclick="toggleChatbox()" class="text-slate-400 hover:text-white cursor-pointer text-sm">✕</button>
@@ -47,15 +47,23 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ada kendala saat menginput penugasan, mencetak rekap PDF, atau mendownload dokumen? Silakan tanyakan di sini.
+                            Halo! Ada yang bisa saya bantu? Anda bisa memilih tombol pintas di bawah ini atau mengetik pertanyaan secara langsung.
                         </div>
                     </div>
+                </div>
+
+                <!-- Tombol Pintasan Cepat (Quick Reply Chips) -->
+                <div class="px-3 py-2 bg-slate-800/40 border-t border-slate-800 flex flex-wrap gap-1.5">
+                    <button onclick="sendQuickQuery('Cari Data Pegawai')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">🔍 Cari Pegawai</button>
+                    <button onclick="sendQuickQuery('Kendala Input Data')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">⚠️ Gagal Input</button>
+                    <button onclick="sendQuickQuery('Batas Download ZIP')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📦 Limit ZIP</button>
+                    <button onclick="sendQuickQuery('Status Dokumen')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📌 Status Surat</button>
                 </div>
 
                 <!-- Kolom Input Pesan -->
                 <div class="p-3 bg-slate-800/80 border-t border-slate-700">
                     <form onsubmit="handleChatSubmit(event)" class="flex space-x-2">
-                        <input type="text" id="chatInput" placeholder="Tuliskan kendala Anda..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
+                        <input type="text" id="chatInput" placeholder="Tuliskan kendala atau nama pegawai..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
                             Kirim
                         </button>
@@ -105,6 +113,7 @@
         const PASSWORD_RAHASIA = "osdm321";
         const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
         let idleTimer;
+        let waitingForPegawaiQuery = false;
 
         window.onload = function() {
             if (localStorage.getItem("isLoggedIn") === "true") {
@@ -219,6 +228,11 @@
             chatWindow.classList.toggle("hidden");
         }
 
+        function sendQuickQuery(text) {
+            document.getElementById("chatInput").value = text;
+            handleChatSubmit(new Event('submit'));
+        }
+
         function handleChatSubmit(e) {
             e.preventDefault();
             const inputField = document.getElementById("chatInput");
@@ -238,7 +252,23 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             setTimeout(() => {
-                const botReply = getBotResponse(userText.toLowerCase());
+                const lowerText = userText.toLowerCase();
+
+                if (waitingForPegawaiQuery) {
+                    waitingForPegawaiQuery = false;
+                    searchDataFromSpreadsheet(userText, chatMessages);
+                    return;
+                }
+
+                let botReply = "";
+
+                if (lowerText.includes("cari") || lowerText.includes("nama") || lowerText.includes("nip") || lowerText.includes("pegawai")) {
+                    waitingForPegawaiQuery = true;
+                    botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cari:";
+                } else {
+                    botReply = getBotResponse(lowerText);
+                }
+
                 chatMessages.innerHTML += `
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
@@ -250,41 +280,76 @@
             }, 600);
         }
 
-        // --- BASIS PENGETAHUAN PANDUAN USER (MURNI OPERASIONAL & AMAN) ---
+        function searchDataFromSpreadsheet(keyword, chatContainer) {
+            const loadingId = "loading_" + new Date().getTime();
+            chatContainer.innerHTML += `
+                <div id="${loadingId}" class="flex items-start space-x-2">
+                    <div class="bg-blue-600/60 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow animate-pulse">
+                        Mencari data untuk "${escapeHtml(keyword)}" di sistem...
+                    </div>
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbxPtzF4QvHPkddQMzbcrdglMWoTIU2vms51z1OYfwqKHvLNkVaATlBctvY0PKA8VFYx/exec?action=searchChat&q=" + encodeURIComponent(keyword);
+
+            fetch(webAppUrl)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(loadingId).remove();
+                    let replyHtml = "";
+                    if (data.status === 'success' && data.data.length > 0) {
+                        replyHtml = "Ditemukan data penugasan berikut:<br><br>";
+                        data.data.forEach(item => {
+                            replyHtml += `• <b>${item.nama}</b> (NIP: ${item.nip})<br>` +
+                                         `&nbsp;&nbsp;Jabatan: ${item.jabatanTugas} di ${item.satuanTugas}<br>` +
+                                         `&nbsp;&nbsp;Masa Tugas: ${item.tglMulai} s/d ${item.tglBerakhir}<br>` +
+                                         `&nbsp;&nbsp;No. SK: ${item.noSK} [Status: ${item.status}]<br><br>`;
+                        });
+                    } else {
+                        replyHtml = `Mohon maaf, tidak ditemukan data penugasan atas nama atau NIP "${escapeHtml(keyword)}" di dalam sistem.`;
+                    }
+
+                    chatContainer.innerHTML += `
+                        <div class="flex items-start space-x-2">
+                            <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                                ${replyHtml}
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                })
+                .catch(err => {
+                    document.getElementById(loadingId).remove();
+                    chatContainer.innerHTML += `
+                        <div class="flex items-start space-x-2">
+                            <div class="bg-red-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                                Terjadi kendala saat menghubungkan ke server sistem. Silakan coba beberapa saat lagi.
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                });
+        }
+
         function getBotResponse(query) {
             if (query.includes("halo") || query.includes("hai") || query.includes("selamat") || query.includes("pagi") || query.includes("siang")) {
-                return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pencetakan dokumen surat?";
+                return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pencarian data pegawai?";
             } 
-            else if (query.includes("tidak bisa input") || query.includes("gagal input") || query.includes("overlap") || query.includes("bersinggungan") || query.includes("riwayat") || query.includes("kenapa saya input")) {
-                return "Pastikan pegawai yang bersangkutan belum memiliki jadwal penugasan lain yang bentrok pada rentang tanggal dan tahun yang sama. Sistem secara otomatis menjaga agar jadwal penugasan tidak tumpang tindih. Jika Anda memasukkan jadwal baru pada tahun yang sama, riwayat penugasan sebelumnya akan otomatis diperbarui.";
+            else if (query.includes("tidak bisa input") || query.includes("gagal input") || query.includes("overlap") || query.includes("bersinggungan") || query.includes("kendala input")) {
+                return "Pastikan pegawai yang bersangkutan belum memiliki jadwal penugasan lain yang bentrok pada rentang tanggal dan tahun yang sama agar jadwal tidak tumpang tindih.";
             } 
-            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("download") || query.includes("terdownload")) {
-                return "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil dan tidak mengalami kendala muat. Jika dokumen lebih dari 60, silakan unduh secara bertahap.";
+            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("download") || query.includes("batas")) {
+                return "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil. Jika dokumen lebih dari 60, silakan unduh secara bertahap.";
             } 
-            else if (query.includes("nomor sk") || query.includes("no sk") || query.includes("format sk")) {
-                return "Nomor Surat Keputusan atau Surat Tugas akan terisi secara otomatis oleh sistem sesuai dengan urutan pencatatan yang berlaku.";
+            else if (query.includes("status") || query.includes("tte")) {
+                return "Status <b>Proses/Draf</b> berarti data sedang dikerjakan, <b>Sudah TTE</b> artinya telah ditandatangani secara elektronik, dan <b>Selesai</b> berarti masa penugasan telah berakhir atau diperbarui.";
             }
-            else if (query.includes("dasar hukum") || query.includes("pppk") || query.includes("pns")) {
-                return "Dasar hukum pada surat akan menyesuaikan secara otomatis dengan kategori kepegawaian yang dipilih (PNS/CPNS atau PPPK) saat Anda mengisi formulir.";
-            }
-            else if (query.includes("import") || query.includes("excel") || query.includes("batch")) {
-                return "Pastikan struktur kolom pada file Excel Anda sudah sesuai dengan format templat baku yang disediakan pada menu 'Import Excel (Batch)'.";
-            }
-            else if (query.includes("edit") || query.includes("update") || query.includes("ubah")) {
-                return "Jika ada perbaikan data, Anda dapat memanfaatkan menu 'Edit / Update Data' yang tersedia di bagian atas aplikasi.";
-            }
-            else if (query.includes("cetak") || query.includes("print") || query.includes("pdf")) {
-                return "Dokumen surat tugas dalam format PDF dapat diunduh melalui menu 'Cetak Surat (PDF)' setelah data berhasil disimpan ke dalam sistem.";
-            }
-            // Pengamanan Ketat untuk Pertanyaan Kata Sandi / Akses Rahasia
-            else if (query.includes("password") || query.includes("sandi") || query.includes("login") || query.includes("masuk")) {
-                return "Demi keamanan sistem instansi, informasi kata sandi atau akses masuk tidak dapat diberikan melalui asisten virtual ini. Silakan hubungi administrator atau rekan tim yang memegang kewenangan akses.";
+            else if (query.includes("password") || query.includes("sandi") || query.includes("login")) {
+                return "Demi keamanan sistem instansi, informasi kata sandi atau akses masuk tidak dapat diberikan melalui asisten virtual ini. Silakan hubungi administrator.";
             } 
-            else if (query.includes("terima kasih") || query.includes("makasih") || query.includes("thanks")) {
-                return "Sama-sama! Senang bisa membantu kelancaran pekerjaan Anda.";
-            }
             else {
-                return "Mohon maaf, saya belum memahami detail pertanyaan tersebut. Pastikan Anda mengikuti langkah-langkah pengisian form atau panduan pada menu aplikasi yang tersedia.";
+                return "Ingin mencari data pegawai atau penugasan? Silakan klik tombol <b>'🔍 Cari Pegawai'</b> di atas atau ketik langsung Nama / NIP pegawai yang ingin Anda cek.";
             }
         }
 
