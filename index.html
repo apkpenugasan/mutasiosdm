@@ -16,11 +16,11 @@
 
     <!-- BAGIAN 1: KONTEN APLIKASI UTAMA -->
     <div id="mainAppContainer" class="w-full h-full hidden flex-col relative">
-        <iframe src="https://script.google.com/macros/s/AKfycbyhf88xcnKOxeyTmrbtj2DkpY8lah4yvXtSMceawaQrEj_nGx6g3waABe4d0q4a94U/exec" 
+        <iframe src="https://script.google.com/macros/s/AKfycbwiovU6GscQdxNGQ0tCvjDRuXXnL_Z0cUNg9Ts6QIvUFgD3jBiyYEYDPw3UiUkIX_PS/exec" 
                 class="w-full h-full border-none" 
                 title="Sistem Penugasan"></iframe>
 
-        <!-- WIDGET CHATBOT MENGAMBANG (FLOATING CHAT) -->
+        <!-- WIDGET CHATBOT MENGAMBANG (FLOATING CHAT DENGAN GEMINI AI) -->
         <div class="absolute bottom-6 right-6 z-50">
             <!-- Tombol Gelembung Chat -->
             <button onclick="toggleChatbox()" id="chatToggleBtn" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 cursor-pointer border border-blue-400/30">
@@ -36,7 +36,7 @@
                     <div class="flex items-center space-x-3">
                         <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
                         <div>
-                            <h3 class="text-xs font-bold text-white">Asisten OSDM Cerdas</h3>
+                            <h3 class="text-xs font-bold text-white">Asisten OSDM Cerdas (AI)</h3>
                             <p class="text-[10px] text-slate-400">Diagnosis Kendala & Cek Status Otomatis</p>
                         </div>
                     </div>
@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ketik kendala atau nama pegawai yang ingin Anda cek (contoh: <i>"ahmad jaenudin"</i> atau <i>"status alita milasari"</i>).
+                            Halo! Ketik kendala teknis Anda atau nama pegawai yang ingin dicek (contoh: <i>"ahmad jaenudin"</i> atau <i>"bagaimana cara mengatasi overlap jadwal?"</i>).
                         </div>
                     </div>
                 </div>
@@ -112,6 +112,7 @@
     <script>
         const PASSWORD_RAHASIA = "osdm321";
         const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiovU6GscQdxNGQ0tCvjDRuXXnL_Z0cUNg9Ts6QIvUFgD3jBiyYEYDPw3UiUkIX_PS/exec";
         let idleTimer;
         let waitingForPegawaiQuery = false;
 
@@ -243,7 +244,7 @@
                 waitingForPegawaiQuery = true;
             } else if (type === 'zip') {
                 userLabel = "📦 Batas Download ZIP";
-                botReply = "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil. Jika lebih dari 60, silakan unduh secara bertahap.";
+                botReply = "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil.";
             } else if (type === 'status') {
                 userLabel = "📌 Status Dokumen";
                 botReply = "Status <b>Proses/Draf</b> = sedang dikerjakan.<br>Status <b>Sudah TTE</b> = sudah ditandatangani elektronik.<br>Status <b>Selesai</b> = masa tugas berakhir.<br><br>Ingin cek status pegawai tertentu? Ketik nama pegawai tersebut.";
@@ -282,29 +283,21 @@
             inputField.value = "";
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            setTimeout(() => {
-                const lowerText = userText.toLowerCase();
+            const lowerText = userText.toLowerCase();
 
-                if (waitingForPegawaiQuery) {
-                    waitingForPegawaiQuery = false;
-                    searchDataFromSpreadsheet(userText, chatMessages);
-                    return;
-                }
+            if (waitingForPegawaiQuery) {
+                waitingForPegawaiQuery = false;
+                searchDataFromSpreadsheet(userText, chatMessages);
+                return;
+            }
 
-                if (lowerText.includes("gagal") || lowerText.includes("input") || lowerText.includes("status") || lowerText.includes("cek") || lowerText.includes("cari") || lowerText.length > 5 && (lowerText.includes("alita") || lowerText.includes("ahmad") || lowerText.includes("nama") || lowerText.includes("nip") || /^[a-zA-Z\s]{4,}$/.test(lowerText))) {
-                    searchDataFromSpreadsheet(userText, chatMessages);
-                } else {
-                    let botReply = getBotResponse(lowerText);
-                    chatMessages.innerHTML += `
-                        <div class="flex items-start space-x-2">
-                            <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                                ${botReply}
-                            </div>
-                        </div>
-                    `;
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            }, 600);
+            // Jika mengarah pada pencarian data pegawai / status
+            if (lowerText.includes("gagal") || lowerText.includes("status") || lowerText.includes("cek") || lowerText.includes("cari") || /^[a-zA-Z\s]{4,}$/.test(lowerText)) {
+                searchDataFromSpreadsheet(userText, chatMessages);
+            } else {
+                // Jika berupa pertanyaan bebas/teknis -> Hubungkan ke Gemini AI di Backend
+                askGeminiChat(userText, chatMessages);
+            }
         }
 
         function searchDataFromSpreadsheet(keyword, chatContainer) {
@@ -318,9 +311,9 @@
             `;
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbyhf88xcnKOxeyTmrbtj2DkpY8lah4yvXtSMceawaQrEj_nGx6g3waABe4d0q4a94U/exec?action=searchChat&q=" + encodeURIComponent(keyword);
+            const endpointUrl = WEB_APP_URL + "?action=searchChat&q=" + encodeURIComponent(keyword);
 
-            fetch(webAppUrl)
+            fetch(endpointUrl)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById(loadingId).remove();
@@ -335,7 +328,7 @@
                                          `&nbsp;&nbsp;<span style="color: #fde047;">${item.diagnosa}</span><br><br>`;
                         });
                     } else {
-                        replyHtml = `Mohon maaf, tidak ditemukan data pegawai atau riwayat penugasan untuk kata kunci "${escapeHtml(keyword)}". Pastikan penulisan nama sudah benar.`;
+                        replyHtml = `Mohon maaf, tidak ditemukan data pegawai atau riwayat penugasan untuk kata kunci "${escapeHtml(keyword)}".`;
                     }
 
                     chatContainer.innerHTML += `
@@ -352,7 +345,7 @@
                     chatContainer.innerHTML += `
                         <div class="flex items-start space-x-2">
                             <div class="bg-red-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                                Terjadi kendala saat menghubungkan ke server sistem. Silakan coba beberapa saat lagi.
+                                Terjadi kendala saat menghubungkan ke server sistem.
                             </div>
                         </div>
                     `;
@@ -360,22 +353,45 @@
                 });
         }
 
-        function getBotResponse(query) {
-            if (query.includes("halo") || query.includes("hai") || query.includes("selamat")) {
-                return "Halo! Ada yang bisa saya bantu terkait pengisian data penugasan atau pengecekan status pegawai?";
-            } 
-            else if (query.includes("bulk") || query.includes("zip") || query.includes("60") || query.includes("batas")) {
-                return "Unduh rekap dokumen ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem stabil.";
-            } 
-            else if (query.includes("status") || query.includes("tte")) {
-                return "Status <b>Proses/Draf</b> berarti data sedang dikerjakan, <b>Sudah TTE</b> artinya telah ditandatangani secara elektronik, dan <b>Selesai</b> berarti masa penugasan telah berakhir atau diperbarui.";
-            }
-            else if (query.includes("password") || query.includes("sandi") || query.includes("login")) {
-                return "Demi keamanan instansi, kata sandi tidak dapat dibagikan di sini. Silakan hubungi administrator.";
-            } 
-            else {
-                return "Ingin mengecek kendala gagal input atau status surat pegawai? Cukup ketik langsung pertanyaannya (contoh: <i>'status alita milasari'</i> atau <i>'ahmad jaenudin'</i>).";
-            }
+        function askGeminiChat(query, chatContainer) {
+            const loadingId = "loading_" + new Date().getTime();
+            chatContainer.innerHTML += `
+                <div id="${loadingId}" class="flex items-start space-x-2">
+                    <div class="bg-blue-600/60 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow animate-pulse">
+                        Asisten AI sedang menyusun jawaban...
+                    </div>
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const endpointUrl = WEB_APP_URL + "?action=askAI&prompt=" + encodeURIComponent(query);
+
+            fetch(endpointUrl)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById(loadingId).remove();
+                    let replyText = data.status === 'success' ? data.reply : "Maaf, AI sedang mengalami kendala.";
+
+                    chatContainer.innerHTML += `
+                        <div class="flex items-start space-x-2">
+                            <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                                ${replyText.replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                })
+                .catch(err => {
+                    document.getElementById(loadingId).remove();
+                    chatContainer.innerHTML += `
+                        <div class="flex items-start space-x-2">
+                            <div class="bg-red-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                                Gagal terhubung ke peladen AI.
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                });
         }
 
         function escapeHtml(text) {
