@@ -20,7 +20,7 @@
                 class="w-full h-full border-none" 
                 title="Sistem Penugasan"></iframe>
 
-        <!-- WIDGET CHATBOT HIBRIDA (INTERNAL + GEMINI AI) -->
+        <!-- WIDGET CHATBOT HIBRIDA (INTERNAL + AI) -->
         <div class="absolute bottom-6 right-6 z-50">
             <!-- Tombol Gelembung Chat -->
             <button onclick="toggleChatbox()" id="chatToggleBtn" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 cursor-pointer border border-blue-400/30">
@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Saya bisa membantu Anda mengecek data pegawai di sistem (ketik namanya) atau berdiskusi seputar kendala teknis (PDF SIKD, TTE, dll). Ada yang bisa dibantu?
+                            Halo! Saya bisa membantu Anda mengecek data pegawai di sistem (ketik namanya) atau berdiskusi seputar kendala teknis. Ada yang bisa dibantu?
                         </div>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
         </form>
     </div>
 
-    <!-- Skrip Logika Hibrida -->
+    <!-- Skrip Logika Hibrida Terintegrasi -->
     <script>
         const PASSWORD_RAHASIA = "osdm321";
         const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
@@ -243,7 +243,7 @@
                 askGeminiChat("Jelaskan secara solutif kenapa sistem menolak input penugasan karena overlap jadwal dan bagaimana cara mengatasinya.", chatMessages);
                 return;
             } else if (type === 'sikd') {
-                userLabel = "📄 Format PDF SIKD";
+                userLabel = "📄 Format SIKD";
                 askGeminiChat("Jelaskan bagaimana standar kompatibilitas file PDF agar bisa diunggah dengan lancar ke sistem SIKD Kementerian Sosial.", chatMessages);
                 return;
             } else if (type === 'status') {
@@ -286,24 +286,19 @@
             inputField.value = "";
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Jika user sebelumnya klik tombol Cari Pegawai
             if (waitingForPegawaiQuery) {
                 waitingForPegawaiQuery = false;
                 searchDataFromSpreadsheet(userText, chatMessages);
                 return;
             }
 
-            // DETEKSI HIBRIDA: Apakah user sedang mencari nama spesifik/NIP di database?
-            // (Contoh: mengetik nama orang seperti "alita milasari" atau nomor NIP)
             const lower = userText.toLowerCase();
             const isDatabaseQuery = (lower.includes("cari") || lower.includes("cek") || /^\d{15,18}$/.test(userText)) && 
                                      !lower.includes("kenapa") && !lower.includes("bagaimana") && !lower.includes("mengapa");
 
-            if (isDatabaseQuery || (userText.split(" ").length <= 3 && !lower.includes("apa") && !lower.includes("sih") && !lower.includes("pdf") && !lower.includes("sikd"))) {
-                // Cek ke database internal spreadsheet dulu
+            if (isDatabaseQuery || (userText.split(" ").length <= 3 && !lower.includes("apa") && !lower.includes("sih") && !lower.includes("pdf") && !lower.includes("sikd") && !lower.includes("petugas"))) {
                 searchDataFromSpreadsheet(userText, chatMessages);
             } else {
-                // Lempar ke Gemini AI agar dijawab cerdas dan solutif layaknya pakar!
                 askGeminiChat(userText, chatMessages);
             }
         }
@@ -336,7 +331,6 @@
                                          `&nbsp;&nbsp;<span style="color: #fde047;">${item.diagnosa}</span><br><br>`;
                         });
                     } else {
-                        // Jika di database internal tidak ada, otomatis alihkan ke Gemini AI agar tetap dijawab cerdas!
                         askGeminiChat(keyword, chatContainer);
                         return;
                     }
@@ -373,12 +367,22 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById(loadingId).remove();
-                    let replyText = (data.status === 'success' && data.reply) ? data.reply : "Maaf Pak Toni, saat ini peladen AI sedang sibuk. Namun pastikan penugasan dan parameter dokumen sudah sesuai ketentuan Biro OSDM.";
+                    
+                    let replyText = "";
+                    if (typeof data === 'string') {
+                        replyText = data;
+                    } else if (data.reply) {
+                        replyText = data.reply;
+                    } else if (data.data) {
+                        replyText = data.data;
+                    } else {
+                        replyText = "Halo Pak Toni! Pastikan parameter data dan ketentuan administrasi Biro OSDM sudah sesuai.";
+                    }
 
                     chatContainer.innerHTML += `
                         <div class="flex items-start space-x-2">
                             <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                                ${replyText.replace(/\n/g, '<br>')}
+                                ${escapeHtml(replyText).replace(/\n/g, '<br>')}
                             </div>
                         </div>
                     `;
