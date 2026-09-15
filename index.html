@@ -239,9 +239,19 @@
                 botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cari di database:";
                 waitingForPegawaiQuery = true;
             } else if (type === 'gagal') {
-                userLabel = "⚠️ Kendala Input Data";
-                askGeminiChat("Jelaskan secara solutif kenapa sistem menolak input penugasan karena overlap jadwal dan bagaimana cara mengatasinya.", chatMessages);
-                return;
+        userLabel = "⚠️ Kendala Input Data";
+        let botReply = "Halo Sobat OSDM! Gagal input biasanya terjadi karena pegawai tersebut masih memiliki penugasan aktif (status 'Proses') pada rentang tanggal yang bersinggungan di tahun yang sama.<br><br>💡 <b>Solusi:</b> Silakan ubah status penugasan lama menjadi 'Selesai' terlebih dahulu melalui menu Edit Data, atau sesuaikan rentang tanggal penugasan barunya.";
+        
+        chatMessages.innerHTML += `
+            <div class="flex justify-end">
+                <div class="bg-slate-700 text-white rounded-xl rounded-tr-none p-3 max-w-[80%] shadow">${userLabel}</div>
+            </div>
+            <div class="flex items-start space-x-2">
+                <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">${botReply}</div>
+            </div>
+        `;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return;
             } else if (type === 'sikd') {
                 userLabel = "📄 Format SIKD";
                 askGeminiChat("Jelaskan bagaimana standar kompatibilitas file PDF agar bisa diunggah dengan lancar ke sistem SIKD Kementerian Sosial.", chatMessages);
