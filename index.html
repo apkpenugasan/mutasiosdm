@@ -20,7 +20,7 @@
                 class="w-full h-full border-none" 
                 title="Sistem Penugasan"></iframe>
 
-        <!-- WIDGET CHATBOT MENGAMBANG (FLOATING CHAT DENGAN GEMINI AI) -->
+        <!-- WIDGET CHATBOT HIBRIDA (INTERNAL + GEMINI AI) -->
         <div class="absolute bottom-6 right-6 z-50">
             <!-- Tombol Gelembung Chat -->
             <button onclick="toggleChatbox()" id="chatToggleBtn" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 cursor-pointer border border-blue-400/30">
@@ -36,8 +36,8 @@
                     <div class="flex items-center space-x-3">
                         <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
                         <div>
-                            <h3 class="text-xs font-bold text-white">Asisten OSDM Cerdas (AI)</h3>
-                            <p class="text-[10px] text-slate-400">Diagnosis Kendala & Cek Status Otomatis</p>
+                            <h3 class="text-xs font-bold text-white">Asisten OSDM Cerdas (Hibrida AI)</h3>
+                            <p class="text-[10px] text-slate-400">Database Internal & Asisten Pintar</p>
                         </div>
                     </div>
                     <button onclick="toggleChatbox()" class="text-slate-400 hover:text-white cursor-pointer text-sm">✕</button>
@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ketik kendala teknis apa saja atau nama pegawai yang ingin dicek. Saya siap membantu Anda!
+                            Halo! Saya bisa membantu Anda mengecek data pegawai di sistem (ketik namanya) atau berdiskusi seputar kendala teknis (PDF SIKD, TTE, dll). Ada yang bisa dibantu?
                         </div>
                     </div>
                 </div>
@@ -56,14 +56,14 @@
                 <div class="px-3 py-2 bg-slate-800/40 border-t border-slate-800 flex flex-wrap gap-1.5">
                     <button onclick="sendQuickAction('cari')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">🔍 Cari Pegawai</button>
                     <button onclick="sendQuickAction('gagal')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">⚠️ Gagal Input</button>
-                    <button onclick="sendQuickAction('zip')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📦 Limit ZIP</button>
+                    <button onclick="sendQuickAction('sikd')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📄 Format SIKD</button>
                     <button onclick="sendQuickAction('status')" class="bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 transition cursor-pointer">📌 Status Surat</button>
                 </div>
 
                 <!-- Kolom Input Pesan -->
                 <div class="p-3 bg-slate-800/80 border-t border-slate-700">
                     <form onsubmit="handleChatSubmit(event)" class="flex space-x-2">
-                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan / nama pegawai..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
+                        <input type="text" id="chatInput" placeholder="Ketik nama pegawai atau pertanyaan..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500" autocomplete="off">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
                             Kirim
                         </button>
@@ -108,7 +108,7 @@
         </form>
     </div>
 
-    <!-- Skrip Logika Cerdas -->
+    <!-- Skrip Logika Hibrida -->
     <script>
         const PASSWORD_RAHASIA = "osdm321";
         const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
@@ -236,34 +236,36 @@
 
             if (type === 'cari') {
                 userLabel = "🔍 Cari Data Pegawai";
-                botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cari:";
+                botReply = "Silakan ketik <b>Nama atau NIP pegawai</b> yang ingin Anda cari di database:";
                 waitingForPegawaiQuery = true;
             } else if (type === 'gagal') {
                 userLabel = "⚠️ Kendala Input Data";
-                botReply = "Gagal input biasanya terjadi karena jadwal penugasan pegawai bersinggungan (*overlap*) dengan penugasan aktif yang belum selesai. Ada yang ingin ditanyakan lagi seputar kendala ini?";
-                askGeminiChat("Jelaskan secara ringkas kenapa sistem menolak input penugasan karena overlap jadwal.", chatMessages);
+                askGeminiChat("Jelaskan secara solutif kenapa sistem menolak input penugasan karena overlap jadwal dan bagaimana cara mengatasinya.", chatMessages);
                 return;
-            } else if (type === 'zip') {
-                userLabel = "📦 Batas Download ZIP";
-                botReply = "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil.";
+            } else if (type === 'sikd') {
+                userLabel = "📄 Format PDF SIKD";
+                askGeminiChat("Jelaskan bagaimana standar kompatibilitas file PDF agar bisa diunggah dengan lancar ke sistem SIKD Kementerian Sosial.", chatMessages);
+                return;
             } else if (type === 'status') {
-                userLabel = "📌 Status Dokumen";
+                userLabel = "📌 Status Surat";
                 botReply = "Status <b>Proses/Draf</b> = sedang dikerjakan.<br>Status <b>Sudah TTE</b> = sudah ditandatangani elektronik.<br>Status <b>Selesai</b> = masa tugas berakhir.";
             }
 
-            chatMessages.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="bg-slate-700 text-white rounded-xl rounded-tr-none p-3 max-w-[80%] shadow">
-                        ${userLabel}
+            if (botReply) {
+                chatMessages.innerHTML += `
+                    <div class="flex justify-end">
+                        <div class="bg-slate-700 text-white rounded-xl rounded-tr-none p-3 max-w-[80%] shadow">
+                            ${userLabel}
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-start space-x-2">
-                    <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                        ${botReply}
+                    <div class="flex items-start space-x-2">
+                        <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
+                            ${botReply}
+                        </div>
                     </div>
-                </div>
-            `;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         }
 
         function handleChatSubmit(e) {
@@ -284,26 +286,24 @@
             inputField.value = "";
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Jika sebelumnya user mengklik tombol "Cari Pegawai", arahkan ke pencarian spreadsheet
+            // Jika user sebelumnya klik tombol Cari Pegawai
             if (waitingForPegawaiQuery) {
                 waitingForPegawaiQuery = false;
                 searchDataFromSpreadsheet(userText, chatMessages);
                 return;
             }
 
-            // DETEKSI CERDAS: Apakah user sedang mencari nama orang secara spesifik?
-            // (Misal hanya mengetik 1-3 kata pendek yang tidak mengandung tanda tanya atau kata tanya teknis)
-            const isLikelyNameSearch = /^(?:[a-zA-Z]{3,}\s?){1,3}$/.test(userText) && 
-                                       !userText.toLowerCase().includes("kenapa") && 
-                                       !userText.toLowerCase().includes("bagaimana") && 
-                                       !userText.toLowerCase().includes("cara") && 
-                                       !userText.toLowerCase().includes("kendala") && 
-                                       !userText.toLowerCase().includes("tidak");
+            // DETEKSI HIBRIDA: Apakah user sedang mencari nama spesifik/NIP di database?
+            // (Contoh: mengetik nama orang seperti "alita milasari" atau nomor NIP)
+            const lower = userText.toLowerCase();
+            const isDatabaseQuery = (lower.includes("cari") || lower.includes("cek") || /^\d{15,18}$/.test(userText)) && 
+                                     !lower.includes("kenapa") && !lower.includes("bagaimana") && !lower.includes("mengapa");
 
-            if (isLikelyNameSearch) {
+            if (isDatabaseQuery || (userText.split(" ").length <= 3 && !lower.includes("apa") && !lower.includes("sih") && !lower.includes("pdf") && !lower.includes("sikd"))) {
+                // Cek ke database internal spreadsheet dulu
                 searchDataFromSpreadsheet(userText, chatMessages);
             } else {
-                // Selebihnya (curhatan, pertanyaan teknis, kendala edit, dll) LEMPAR KE GEMINI AI AGAR DIJAWAB CERDAS!
+                // Lempar ke Gemini AI agar dijawab cerdas dan solutif layaknya pakar!
                 askGeminiChat(userText, chatMessages);
             }
         }
@@ -313,7 +313,7 @@
             chatContainer.innerHTML += `
                 <div id="${loadingId}" class="flex items-start space-x-2">
                     <div class="bg-blue-600/60 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow animate-pulse">
-                        Menganalisis data dan membaca status penugasan...
+                        Mengecek data internal spreadsheet...
                     </div>
                 </div>
             `;
@@ -327,7 +327,7 @@
                     document.getElementById(loadingId).remove();
                     let replyHtml = "";
                     if (data.status === 'success' && data.data.length > 0) {
-                        replyHtml = `Hasil Analisis Sistem untuk pencarian <i>"${escapeHtml(keyword)}"</i>:<br><br>`;
+                        replyHtml = `Hasil Data Internal untuk <i>"${escapeHtml(keyword)}"</i>:<br><br>`;
                         data.data.forEach(item => {
                             replyHtml += `• <b>${item.nama}</b> (NIP: ${item.nip})<br>` +
                                          `&nbsp;&nbsp;Jabatan: ${item.jabatanTugas} di ${item.satuanTugas}<br>` +
@@ -336,7 +336,9 @@
                                          `&nbsp;&nbsp;<span style="color: #fde047;">${item.diagnosa}</span><br><br>`;
                         });
                     } else {
-                        replyHtml = `Mohon maaf, tidak ditemukan data pegawai atau riwayat penugasan untuk kata kunci "${escapeHtml(keyword)}".`;
+                        // Jika di database internal tidak ada, otomatis alihkan ke Gemini AI agar tetap dijawab cerdas!
+                        askGeminiChat(keyword, chatContainer);
+                        return;
                     }
 
                     chatContainer.innerHTML += `
@@ -350,14 +352,7 @@
                 })
                 .catch(err => {
                     document.getElementById(loadingId).remove();
-                    chatContainer.innerHTML += `
-                        <div class="flex items-start space-x-2">
-                            <div class="bg-red-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                                Terjadi kendala saat menghubungkan ke server sistem.
-                            </div>
-                        </div>
-                    `;
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    askGeminiChat(keyword, chatContainer);
                 });
         }
 
@@ -366,7 +361,7 @@
             chatContainer.innerHTML += `
                 <div id="${loadingId}" class="flex items-start space-x-2">
                     <div class="bg-blue-600/60 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow animate-pulse">
-                        Asisten AI sedang menyusun jawaban cerdas...
+                        Asisten AI sedang menyusun jawaban...
                     </div>
                 </div>
             `;
@@ -378,7 +373,7 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById(loadingId).remove();
-                    let replyText = data.status === 'success' ? data.reply : "Maaf, AI sedang mengalami kendala pada server.";
+                    let replyText = (data.status === 'success' && data.reply) ? data.reply : "Maaf Pak Toni, saat ini peladen AI sedang sibuk. Namun pastikan penugasan dan parameter dokumen sudah sesuai ketentuan Biro OSDM.";
 
                     chatContainer.innerHTML += `
                         <div class="flex items-start space-x-2">
@@ -394,7 +389,7 @@
                     chatContainer.innerHTML += `
                         <div class="flex items-start space-x-2">
                             <div class="bg-red-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                                Gagal terhubung ke peladen AI.
+                                Gagal terhubung ke server AI.
                             </div>
                         </div>
                     `;
