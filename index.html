@@ -47,7 +47,7 @@
                 <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                     <div class="flex items-start space-x-2">
                         <div class="bg-blue-600 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow">
-                            Halo! Ketik kendala teknis Anda atau nama pegawai yang ingin dicek (contoh: <i>"ahmad jaenudin"</i> atau <i>"bagaimana cara mengatasi overlap jadwal?"</i>).
+                            Halo! Ketik kendala teknis apa saja atau nama pegawai yang ingin dicek. Saya siap membantu Anda!
                         </div>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
         </form>
     </div>
 
-    <!-- Skrip Logika Lengkap -->
+    <!-- Skrip Logika Cerdas -->
     <script>
         const PASSWORD_RAHASIA = "osdm321";
         const IDLE_TIMEOUT_LIMIT = 15 * 60 * 1000; 
@@ -240,14 +240,15 @@
                 waitingForPegawaiQuery = true;
             } else if (type === 'gagal') {
                 userLabel = "⚠️ Kendala Input Data";
-                botReply = "Gagal input biasanya terjadi karena jadwal penugasan pegawai bersinggungan (*overlap*) dengan penugasan aktif yang belum selesai. Siapa nama pegawai yang ingin Anda cek?";
-                waitingForPegawaiQuery = true;
+                botReply = "Gagal input biasanya terjadi karena jadwal penugasan pegawai bersinggungan (*overlap*) dengan penugasan aktif yang belum selesai. Ada yang ingin ditanyakan lagi seputar kendala ini?";
+                askGeminiChat("Jelaskan secara ringkas kenapa sistem menolak input penugasan karena overlap jadwal.", chatMessages);
+                return;
             } else if (type === 'zip') {
                 userLabel = "📦 Batas Download ZIP";
                 botReply = "Unduh rekap dokumen dalam bentuk ZIP dibatasi maksimal 60 dokumen dalam sekali proses agar sistem tetap stabil.";
             } else if (type === 'status') {
                 userLabel = "📌 Status Dokumen";
-                botReply = "Status <b>Proses/Draf</b> = sedang dikerjakan.<br>Status <b>Sudah TTE</b> = sudah ditandatangani elektronik.<br>Status <b>Selesai</b> = masa tugas berakhir.<br><br>Ingin cek status pegawai tertentu? Ketik nama pegawai tersebut.";
+                botReply = "Status <b>Proses/Draf</b> = sedang dikerjakan.<br>Status <b>Sudah TTE</b> = sudah ditandatangani elektronik.<br>Status <b>Selesai</b> = masa tugas berakhir.";
             }
 
             chatMessages.innerHTML += `
@@ -283,19 +284,26 @@
             inputField.value = "";
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            const lowerText = userText.toLowerCase();
-
+            // Jika sebelumnya user mengklik tombol "Cari Pegawai", arahkan ke pencarian spreadsheet
             if (waitingForPegawaiQuery) {
                 waitingForPegawaiQuery = false;
                 searchDataFromSpreadsheet(userText, chatMessages);
                 return;
             }
 
-            // Jika mengarah pada pencarian data pegawai / status
-            if (lowerText.includes("gagal") || lowerText.includes("status") || lowerText.includes("cek") || lowerText.includes("cari") || /^[a-zA-Z\s]{4,}$/.test(lowerText)) {
+            // DETEKSI CERDAS: Apakah user sedang mencari nama orang secara spesifik?
+            // (Misal hanya mengetik 1-3 kata pendek yang tidak mengandung tanda tanya atau kata tanya teknis)
+            const isLikelyNameSearch = /^(?:[a-zA-Z]{3,}\s?){1,3}$/.test(userText) && 
+                                       !userText.toLowerCase().includes("kenapa") && 
+                                       !userText.toLowerCase().includes("bagaimana") && 
+                                       !userText.toLowerCase().includes("cara") && 
+                                       !userText.toLowerCase().includes("kendala") && 
+                                       !userText.toLowerCase().includes("tidak");
+
+            if (isLikelyNameSearch) {
                 searchDataFromSpreadsheet(userText, chatMessages);
             } else {
-                // Jika berupa pertanyaan bebas/teknis -> Hubungkan ke Gemini AI di Backend
+                // Selebihnya (curhatan, pertanyaan teknis, kendala edit, dll) LEMPAR KE GEMINI AI AGAR DIJAWAB CERDAS!
                 askGeminiChat(userText, chatMessages);
             }
         }
@@ -358,7 +366,7 @@
             chatContainer.innerHTML += `
                 <div id="${loadingId}" class="flex items-start space-x-2">
                     <div class="bg-blue-600/60 text-white rounded-xl rounded-tl-none p-3 max-w-[80%] shadow animate-pulse">
-                        Asisten AI sedang menyusun jawaban...
+                        Asisten AI sedang menyusun jawaban cerdas...
                     </div>
                 </div>
             `;
@@ -370,7 +378,7 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById(loadingId).remove();
-                    let replyText = data.status === 'success' ? data.reply : "Maaf, AI sedang mengalami kendala.";
+                    let replyText = data.status === 'success' ? data.reply : "Maaf, AI sedang mengalami kendala pada server.";
 
                     chatContainer.innerHTML += `
                         <div class="flex items-start space-x-2">
